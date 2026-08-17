@@ -1,0 +1,19 @@
+Apollo Pharmacy - Product Quality Complaint
+
+Date: 08 August 2026
+Complaint source: Retail pharmacy chain
+Customer name: Apollo Pharmacy, Bengaluru (Koramangala store)
+
+Product name: Amoxicillin Capsules
+Product strength/grade: 500 mg
+Batch/lot number: BMX24601
+Manufacturing date: 04 March 2026
+Expiry date: 03 March 2028
+Quantity affected: 48 capsules (2 packs of 24)
+
+Complaint type: Appearance / Discoloration
+
+Description:
+The pharmacist reported that several Amoxicillin 500 mg capsules from pack 2 show a brownish-yellow discoloration of the capsule shell compared with the remaining units, which are the expected ivory/off-white. Patients were not dispensed the affected packs. Store has isolated 48 capsules and requests investigation and replacement.
+
+Requested action: QA investigation, retain check, replacement of 48 capsules.

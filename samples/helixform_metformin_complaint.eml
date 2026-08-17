@@ -1,0 +1,26 @@
+From: incoming.qa@helixform.com
+To: complaints@aurora-api.example
+Cc: qa.head@aurora-api.example
+Subject: Customer complaint - Metformin Hydrochloride API batch MFH260712A - discoloration
+Date: Wed, 12 Aug 2026 09:42:00 +0530
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+Dear Aurora QA,
+
+This is a formal product quality complaint from HelixForm Laboratories Pvt. Ltd., Hyderabad.
+
+Product: Metformin Hydrochloride API
+Grade: IP/BP
+Batch/Lot: MFH260712A
+Manufacturing date: 12-Jul-2026
+Retest date: 11-Jul-2030
+Quantity affected: 50 kg in 2 HDPE drums (25 kg each), drum IDs DR-4418 and DR-4419
+
+Observation: pale yellow / off-white discoloration in drum DR-4419 versus white crystalline powder on CoA. Drum DR-4418 appears acceptable. Both drums are quarantined at our warehouse.
+
+Please investigate, compare retain samples, assess related batches, and arrange replacement of the 50 kg (2 HDPE drums).
+
+Regards,
+Incoming Quality
+HelixForm Laboratories

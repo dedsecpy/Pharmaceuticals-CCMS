@@ -1,0 +1,10 @@
+# Demo prompts — paste these into the copilot
+
+## 1. Log complaint
+Apollo Pharmacy reported discolored capsules in Amoxicillin Capsules 500 mg. Batch BMX24601, manufactured 04 Mar 2026, expiry 03 Mar 2028. 48 capsules isolated at the Koramangala store. Please log the complaint.
+
+## 2. Edit complaint
+Sorry, the batch number is BMX24602 and the affected quantity is 48 capsules.
+
+## 3. After uploading samples/metformin_hcl_api_complaint.pdf
+Sorry, the batch number is CHG260712A and affected quantity is 50 kg 2 HDPE drums.
