@@ -7,7 +7,7 @@ export const EMPTY_COMPLAINT = {
   manufacturing_date: null,
   expiry_date: null,
   quantity_affected: null,
-  quantity_unit: null,
+  quantity_unit: 'kg',
   complaint_type: null,
   complaint_date: null,
   detailed_description: null,

@@ -11,7 +11,7 @@ export default function PasteModal({ onClose, onSubmit }) {
         aria-labelledby="paste-title"
       >
         <h3 id="paste-title">Paste complaint text / email</h3>
-        <p style={{ margin: '0 0 10px', color: '#6d7a80', fontSize: 13 }}>
+        <p className="modal-copy">
           Drop in the customer email or a narrative. The log complaint tool will extract the record.
         </p>
         <textarea

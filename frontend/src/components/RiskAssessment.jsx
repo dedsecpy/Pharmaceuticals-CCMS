@@ -15,6 +15,16 @@ export default function RiskAssessment() {
   const duplicates = useSelector((s) => s.complaint.duplicates)
   const severity = (risk.severity || '').toLowerCase()
   const score = insights.completeness_score || 0
+  const ready = Boolean(
+    risk.severity ||
+      risk.next_action ||
+      risk.rationale ||
+      insights.summary ||
+      insights.capa_recommendation ||
+      duplicates.length,
+  )
+
+  if (!ready) return null
 
   return (
     <div className="risk-card">
