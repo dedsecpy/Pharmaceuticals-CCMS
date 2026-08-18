@@ -94,7 +94,9 @@ const chatSlice = createSlice({
         })
       })
       .addCase(saveComplaint.rejected, (state, action) => {
-        state.error = action.payload || action.error.message
+        const message = action.payload || action.error.message
+        if (String(message).includes('product name or a complaint description')) return
+        state.error = message
       })
       .addCase(resetSession.fulfilled, (state) => {
         state.messages = [welcome]

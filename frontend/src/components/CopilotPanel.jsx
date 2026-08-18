@@ -83,8 +83,8 @@ export default function CopilotPanel({ className = '' }) {
 
   return (
     <aside className={`copilot ${className}`.trim()} aria-label="AI complaint assistant">
-      <div className="ai-hero">
-        <div className="mascot-row">
+      <div className={`ai-hero ${idle ? '' : 'chat-started'}`.trim()}>
+        <div className={`mascot-row ${idle ? '' : 'compact'}`.trim()}>
           <div className="mascot" aria-hidden="true">
             <span className="spark spark-a" aria-hidden="true" />
             <span className="spark spark-b" aria-hidden="true" />

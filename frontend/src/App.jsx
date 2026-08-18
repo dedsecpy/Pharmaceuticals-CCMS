@@ -4,7 +4,8 @@ import ComplaintForm, { FormActions } from './components/ComplaintForm'
 import CopilotPanel from './components/CopilotPanel'
 import RiskAssessment from './components/RiskAssessment'
 import BootSplash from './components/BootSplash'
-import { HexMark, Icon } from './components/Icon'
+import logo from './assets/aivoa-logo.png'
+import { Icon } from './components/Icon'
 import { clearToast } from './store/chatSlice'
 import { fetchComplaints } from './store/thunks'
 import useLiveFill from './hooks/useLiveFill'
@@ -28,7 +29,7 @@ export default function App() {
   useEffect(() => {
     let cancelled = false
     const minDelay = new Promise((resolve) => {
-      setTimeout(resolve, 1200)
+      setTimeout(resolve, 2500)
     })
 
     Promise.all([dispatch(fetchComplaints()).unwrap().catch(() => {}), minDelay]).then(() => {
@@ -44,8 +45,20 @@ export default function App() {
     }
   }, [dispatch])
 
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [successText, setSuccessText] = useState('')
+
   useEffect(() => {
     if (!toast) return undefined
+    if (toast.startsWith('Submitted')) {
+      setSuccessText(toast)
+      setShowSuccess(true)
+      const t = setTimeout(() => {
+        setShowSuccess(false)
+        dispatch(clearToast())
+      }, 3400)
+      return () => clearTimeout(t)
+    }
     const t = setTimeout(() => dispatch(clearToast()), 3200)
     return () => clearTimeout(t)
   }, [toast, dispatch])
@@ -63,7 +76,7 @@ export default function App() {
       <div className={`shell ${bootPhase === 'done' ? 'shell-ready' : 'shell-boot'}`}>
         <header className="chrome chrome-enter">
           <div className="brand">
-            <HexMark />
+            <img className="app-logo" src={logo} alt="AIVOA QMS" />
             <div>
               <h1>AIVOA QMS</h1>
               <p>Customer Complaint Module</p>
@@ -74,9 +87,6 @@ export default function App() {
               <span className="dot" />
               {status || 'Pending Triage'}
             </div>
-            <span className="chip">ICH Q7</span>
-            <span className="chip">21 CFR 211.198</span>
-            <span className="chip">EU GMP Ch. 8</span>
             <button className="theme-btn" type="button" onClick={toggleTheme} aria-label="Toggle theme">
               <Icon name={dark ? 'moon' : 'sun'} size={16} />
             </button>
@@ -96,7 +106,38 @@ export default function App() {
         </main>
       </div>
 
-      {toast ? <div className="toast">{toast}</div> : null}
+      {showSuccess ? (
+        <div className="success-overlay" aria-live="polite">
+          <div className="success-card">
+            <div className="success-ring">
+              <svg viewBox="0 0 52 52" className="success-check">
+                <circle cx="26" cy="26" r="24" fill="none" stroke="#22c55e" strokeWidth="2.5" className="success-circle" />
+                <path d="M15 27l6 6 16-16" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="success-tick" />
+              </svg>
+            </div>
+            <h2>Complaint Submitted!</h2>
+            <p>{successText.replace('Submitted ', '')}</p>
+            <span className="success-sub">Logged to QMS register</span>
+          </div>
+          {Array.from({ length: 20 }).map((_, i) => (
+            <span
+              key={i}
+              className="confetti"
+              style={{
+                '--x': `${Math.random() * 100}vw`,
+                '--d': `${600 + Math.random() * 1800}ms`,
+                '--r': `${Math.random() * 360}deg`,
+                '--s': `${0.5 + Math.random() * 0.6}`,
+                left: `${Math.random() * 100}%`,
+                background: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6'][i % 5],
+              }}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
+      ) : toast ? (
+        <div className="toast">{toast}</div>
+      ) : null}
     </div>
   )
 }

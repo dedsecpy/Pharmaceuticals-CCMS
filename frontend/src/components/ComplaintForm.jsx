@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { clearHighlights, updateField } from '../store/complaintSlice'
 import { resetSession, saveComplaint } from '../store/thunks'
@@ -253,7 +253,24 @@ export function FormActions() {
   const dispatch = useDispatch()
   const busy = useSelector((s) => s.chat.busy)
   const filling = useSelector((s) => s.complaint.filling)
+  const fields = useSelector((s) => s.complaint.fields)
   const locked = busy || filling
+  const [shake, setShake] = useState(false)
+  const [hint, setHint] = useState(false)
+
+  function submit() {
+    if (locked) return
+    if (!fields.product_name && !fields.detailed_description) {
+      setShake(false)
+      window.requestAnimationFrame(() => {
+        setShake(true)
+        setHint(true)
+      })
+      window.setTimeout(() => setHint(false), 2600)
+      return
+    }
+    dispatch(saveComplaint())
+  }
 
   return (
     <div className="form-actions">
@@ -261,10 +278,19 @@ export function FormActions() {
         <Icon name="refresh" size={15} />
         Reset form
       </button>
-      <button className="btn btn-primary" type="button" onClick={() => dispatch(saveComplaint())} disabled={locked}>
-        <Icon name="submit" size={15} />
-        Submit complaint
-      </button>
+      <div className="submit-wrap">
+        {hint ? <div className="submit-hint">fill the form before submitting</div> : null}
+        <button
+          className={`btn btn-primary ${shake ? 'says-no' : ''}`}
+          type="button"
+          onClick={submit}
+          onAnimationEnd={() => setShake(false)}
+          disabled={locked}
+        >
+          <Icon name="submit" size={15} />
+          Submit complaint
+        </button>
+      </div>
     </div>
   )
 }
