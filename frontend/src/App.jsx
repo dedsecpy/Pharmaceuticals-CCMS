@@ -3,14 +3,19 @@ import { useDispatch, useSelector } from 'react-redux'
 import ComplaintForm, { FormActions } from './components/ComplaintForm'
 import CopilotPanel from './components/CopilotPanel'
 import RiskAssessment from './components/RiskAssessment'
+import BootSplash from './components/BootSplash'
 import { HexMark, Icon } from './components/Icon'
 import { clearToast } from './store/chatSlice'
 import { fetchComplaints } from './store/thunks'
+import useLiveFill from './hooks/useLiveFill'
 
 export default function App() {
   const dispatch = useDispatch()
+  useLiveFill()
   const toast = useSelector((s) => s.chat.toast)
   const busy = useSelector((s) => s.chat.busy)
+  const filling = useSelector((s) => s.complaint.filling)
+  const working = busy || filling
   const status = useSelector((s) => s.complaint.fields.status)
   const risk = useSelector((s) => s.complaint.risk)
   const insights = useSelector((s) => s.complaint.insights)
@@ -18,9 +23,25 @@ export default function App() {
     risk.severity || risk.next_action || risk.rationale || insights.summary || insights.capa_recommendation,
   )
   const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark')
+  const [bootPhase, setBootPhase] = useState('loading')
 
   useEffect(() => {
-    dispatch(fetchComplaints())
+    let cancelled = false
+    const minDelay = new Promise((resolve) => {
+      setTimeout(resolve, 1200)
+    })
+
+    Promise.all([dispatch(fetchComplaints()).unwrap().catch(() => {}), minDelay]).then(() => {
+      if (cancelled) return
+      setBootPhase('exit')
+      window.setTimeout(() => {
+        if (!cancelled) setBootPhase('done')
+      }, 460)
+    })
+
+    return () => {
+      cancelled = true
+    }
   }, [dispatch])
 
   useEffect(() => {
@@ -37,8 +58,10 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="shell">
-        <header className="chrome">
+      {bootPhase !== 'done' ? <BootSplash exiting={bootPhase === 'exit'} /> : null}
+
+      <div className={`shell ${bootPhase === 'done' ? 'shell-ready' : 'shell-boot'}`}>
+        <header className="chrome chrome-enter">
           <div className="brand">
             <HexMark />
             <div>
@@ -58,24 +81,18 @@ export default function App() {
               <Icon name={dark ? 'moon' : 'sun'} size={16} />
             </button>
           </div>
-          <div className={`nprogress ${busy ? 'on' : ''}`} aria-hidden="true" />
+          <div className={`nprogress ${working ? 'on' : ''}`} aria-hidden="true" />
         </header>
 
         <main className="workspace">
-          <section className={`record ${busy ? 'syncing' : ''}`}>
-            <div className="pane-head">
-              <div>
-                <h2>Log Customer Complaint</h2>
-                <p>API & FDF Quality Assurance Module</p>
-              </div>
-            </div>
-            <div className={`record-scroll ${hasRisk ? 'has-risk' : ''}`}>
+          <section className={`record record-enter ${working ? 'syncing' : ''}`}>
+            <div className={`record-scroll ${filling ? 'can-scroll' : ''} ${hasRisk ? 'has-risk' : ''}`}>
               <ComplaintForm />
               <RiskAssessment />
             </div>
             <FormActions />
           </section>
-          <CopilotPanel />
+          <CopilotPanel className="copilot-enter" />
         </main>
       </div>
 

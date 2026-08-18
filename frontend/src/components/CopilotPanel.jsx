@@ -2,23 +2,40 @@ import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { pushNotice, setProgress } from '../store/chatSlice'
 import { sendMessage, uploadDocument } from '../store/thunks'
+import bunnybot from '../assets/bunnybot.png'
 import { Icon } from './Icon'
-import RobotMascot from './RobotMascot'
 
 const STEPS = [
-  { icon: 'wand', title: 'Describe the issue naturally' },
-  { icon: 'doc', title: "I'll fill the form for you" },
-  { icon: 'check', title: 'Review & submit' },
+  {
+    icon: 'wand',
+    tone: 'green',
+    title: 'Describe the issue naturally',
+    copy: 'Type your complaint like you’re explaining it to a person.',
+  },
+  {
+    icon: 'docbot',
+    tone: 'blue',
+    title: 'I’ll fill the form for you',
+    copy: 'I’ll extract key details and populate the form accurately.',
+  },
+  {
+    icon: 'check-circle',
+    tone: 'purple',
+    title: 'Review & submit',
+    copy: 'You can review, edit if needed, and submit the complaint.',
+  },
 ]
 
-export default function CopilotPanel() {
+export default function CopilotPanel({ className = '' }) {
   const dispatch = useDispatch()
   const { messages, busy, progress, progressLabel, error } = useSelector((s) => s.chat)
   const [draft, setDraft] = useState('')
+  const [attachment, setAttachment] = useState(null)
   const fileRef = useRef(null)
   const bottomRef = useRef(null)
   const thread = messages.filter((msg) => msg.id !== 'welcome')
   const idle = thread.length === 0 && !busy
+  const canSend = Boolean(draft.trim() || attachment)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -36,14 +53,21 @@ export default function CopilotPanel() {
     return () => clearInterval(id)
   }, [busy, dispatch, progress])
 
-  function submit(text) {
-    const value = (text ?? draft).trim()
-    if (!value || busy) return
+
+  function submit() {
+    if (busy || !canSend) return
+    const note = draft.trim()
+    const file = attachment
     setDraft('')
-    dispatch(sendMessage(value))
+    setAttachment(null)
+    if (file) {
+      dispatch(uploadDocument({ file, note }))
+    } else {
+      dispatch(sendMessage(note))
+    }
   }
 
-  function onFile(file) {
+  function stageFile(file) {
     if (!file || busy) return
     const ok = /\.(pdf|docx|txt|eml)$/i.test(file.name)
     if (!ok) {
@@ -54,16 +78,23 @@ export default function CopilotPanel() {
       dispatch(pushNotice('That file exceeds the 10MB limit.'))
       return
     }
-    dispatch(uploadDocument(file))
+    setAttachment(file)
   }
 
   return (
-    <aside className="copilot" aria-label="AI complaint assistant">
+    <aside className={`copilot ${className}`.trim()} aria-label="AI complaint assistant">
       <div className="ai-hero">
         <div className="mascot-row">
-          <RobotMascot />
+          <div className="mascot" aria-hidden="true">
+            <span className="spark spark-a" aria-hidden="true" />
+            <span className="spark spark-b" aria-hidden="true" />
+            <img className="robot" src={bunnybot} alt="" />
+          </div>
           <div className="speech">
-            Hi there! 👋 I can <strong>fill your complaint form</strong> for you.
+            <p>Hi there! 👋</p>
+            <p>
+              I can <strong>fill your complaint form</strong> for you.
+            </p>
           </div>
         </div>
         <p className="ai-copy">
@@ -76,10 +107,13 @@ export default function CopilotPanel() {
         <ul className="ai-steps">
           {STEPS.map((step) => (
             <li key={step.title}>
-              <span className="step-icon">
-                <Icon name={step.icon} size={16} />
+              <span className={`step-icon ${step.tone}`}>
+                <Icon name={step.icon} size={14} />
               </span>
-              {step.title}
+              <div>
+                <strong>{step.title}</strong>
+                <span>{step.copy}</span>
+              </div>
             </li>
           ))}
         </ul>
@@ -132,25 +166,43 @@ export default function CopilotPanel() {
           submit()
         }}
       >
+        {attachment ? (
+          <div className="attach-chip">
+            <Icon name="doc" size={14} />
+            <span title={attachment.name}>{attachment.name}</span>
+            <button type="button" onClick={() => setAttachment(null)} aria-label="Remove attachment">
+              ×
+            </button>
+          </div>
+        ) : null}
         <div className="composer-box">
-          <button
-            className="attach"
-            type="button"
-            disabled={busy}
-            onClick={() => fileRef.current?.click()}
-            aria-label="Attach document"
-          >
-            <Icon name="paperclip" size={18} />
-          </button>
-          <input
+          <textarea
             value={draft}
-            placeholder="Describe your complaint here..."
+            placeholder={attachment ? 'Add a note, then press Enter…' : 'Describe your complaint here...'}
             onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                submit()
+              }
+            }}
             disabled={busy}
+            rows={3}
           />
-          <button className="send" type="submit" disabled={busy || !draft.trim()} aria-label="Send">
-            <Icon name="send" size={16} />
-          </button>
+          <div className="composer-bar">
+            <button
+              className="attach"
+              type="button"
+              disabled={busy}
+              onClick={() => fileRef.current?.click()}
+              aria-label="Attach document"
+            >
+              <Icon name="paperclip" size={18} />
+            </button>
+            <button className="send" type="submit" disabled={busy || !canSend} aria-label="Send">
+              <Icon name="send" size={16} />
+            </button>
+          </div>
         </div>
         <input
           ref={fileRef}
@@ -158,11 +210,15 @@ export default function CopilotPanel() {
           hidden
           accept=".pdf,.docx,.txt,.eml"
           onChange={(e) => {
-            onFile(e.target.files?.[0])
+            stageFile(e.target.files?.[0])
             e.target.value = ''
           }}
         />
-        <p className="formats">PDF, DOCX, TXT, EML · 10MB max</p>
+        <p className="formats">
+          You can attach supporting documents (PDF, DOCX, TXT, EML)
+          <br />
+          Max file size: 10MB
+        </p>
       </form>
     </aside>
   )

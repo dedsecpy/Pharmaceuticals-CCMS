@@ -42,18 +42,19 @@ export function Icon({ name, size = 16 }) {
       {name === 'list' && <path d="M8 7h12M8 12h12M8 17h12M5 7h.01M5 12h.01M5 17h.01" />}
       {name === 'chevron' && <path d="M7 10l5 5 5-5" />}
       {name === 'refresh' && <path d="M20 12a8 8 0 1 1-2.2-5.5M20 4v5h-5" />}
-      {name === 'save' && (
+      {name === 'submit' && (
         <>
-          <path d="M5 5h11l3 3v11H5V5z" />
-          <path d="M8 5v4h8V5M8 19v-6h8v6" />
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8 12.2l2.6 2.6L16.2 9.4" />
         </>
       )}
       {name === 'send' && <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />}
       {name === 'paperclip' && <path d="M21 12.5V17a5 5 0 0 1-10 0V7a3.5 3.5 0 0 1 7 0v9.5a2 2 0 1 1-4 0V8" />}
       {name === 'wand' && (
         <>
-          <path d="M15 4l1.2 2.8L19 8l-2.8 1.2L15 12l-1.2-2.8L11 8l2.8-1.2L15 4zM5 19l9-9" />
-          <path d="M8 5v2M5 8h2M18 15v2M15 18h2" />
+          <path d="M4 20l8.5-8.5" />
+          <path d="M14 4l1.15 2.6L18 8l-2.85 1.15L14 12l-1.15-2.85L10 8l2.85-1.4L14 4z" />
+          <path d="M19 13l.7 1.5L21 15l-1.3.5L19 17l-.7-1.5L17 15l1.3-.5L19 13z" />
         </>
       )}
       {name === 'doc' && (
@@ -62,7 +63,21 @@ export function Icon({ name, size = 16 }) {
           <path d="M14 4v5h5M9 13h6M9 17h4" />
         </>
       )}
+      {name === 'docbot' && (
+        <>
+          <path d="M7 3.5h7.2L19 8.2V20a1.8 1.8 0 0 1-1.8 1.8H7A1.8 1.8 0 0 1 5.2 20V5.3A1.8 1.8 0 0 1 7 3.5z" />
+          <path d="M14.2 3.5V8H19" />
+          <circle cx="12" cy="14.2" r="3.1" />
+          <path d="M10.7 13.6h.01M13.3 13.6h.01M10.8 15.2c.4.5 1 .8 1.2.8s.8-.3 1.2-.8" />
+        </>
+      )}
       {name === 'check' && <path d="M5 12.5l4 4 10-10" />}
+      {name === 'check-circle' && (
+        <>
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M8.2 12.2l2.5 2.5 5.2-5.3" />
+        </>
+      )}
       {name === 'sun' && (
         <>
           <circle cx="12" cy="12" r="4" />

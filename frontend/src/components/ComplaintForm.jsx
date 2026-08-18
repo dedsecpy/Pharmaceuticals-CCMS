@@ -182,9 +182,9 @@ function Control({ spec, value, unit, disabled, onChange }) {
   )
 }
 
-function Field({ spec, value, unit, highlighted, disabled, onChange }) {
+function Field({ spec, value, unit, highlighted, typing, disabled, onChange }) {
   const empty = !value
-  const cls = `field ${spec.wide ? 'wide' : ''} ${empty ? 'empty' : ''} ${highlighted ? 'just-filled' : ''}`
+  const cls = `field ${spec.wide ? 'wide' : ''} ${empty ? 'empty' : ''} ${highlighted ? 'just-filled' : ''} ${typing ? 'typing' : ''}`
 
   return (
     <div className={cls}>
@@ -198,13 +198,26 @@ export default function ComplaintForm() {
   const dispatch = useDispatch()
   const fields = useSelector((s) => s.complaint.fields)
   const highlighted = useSelector((s) => s.complaint.highlighted)
+  const filling = useSelector((s) => s.complaint.filling)
+  const fillingKey = useSelector((s) => s.complaint.fillingKey)
   const busy = useSelector((s) => s.chat.busy)
 
   useEffect(() => {
-    if (!highlighted.length) return undefined
+    if (filling || !highlighted.length) return undefined
     const t = setTimeout(() => dispatch(clearHighlights()), 1600)
     return () => clearTimeout(t)
-  }, [highlighted, dispatch])
+  }, [highlighted, filling, dispatch])
+
+  useEffect(() => {
+    if (!fillingKey) return
+    const field = document.getElementById(fillingKey)?.closest('.field')
+    const pane = field?.closest('.record-scroll')
+    if (!field || !pane) return
+    const paneBox = pane.getBoundingClientRect()
+    const fieldBox = field.getBoundingClientRect()
+    const offset = fieldBox.top - paneBox.top - pane.clientHeight * 0.28
+    pane.scrollTo({ top: pane.scrollTop + offset, behavior: 'smooth' })
+  }, [fillingKey])
 
   return (
     <>
@@ -223,7 +236,8 @@ export default function ComplaintForm() {
                 value={fields[spec.key]}
                 unit={fields.quantity_unit}
                 highlighted={highlighted.includes(spec.key)}
-                disabled={busy}
+                typing={fillingKey === spec.key}
+                disabled={busy || filling}
                 onChange={(key, value) => dispatch(updateField({ key, value }))}
               />
             ))}
@@ -238,16 +252,18 @@ export default function ComplaintForm() {
 export function FormActions() {
   const dispatch = useDispatch()
   const busy = useSelector((s) => s.chat.busy)
+  const filling = useSelector((s) => s.complaint.filling)
+  const locked = busy || filling
 
   return (
     <div className="form-actions">
-      <button className="btn btn-ghost" type="button" onClick={() => dispatch(resetSession())} disabled={busy}>
+      <button className="btn btn-ghost" type="button" onClick={() => dispatch(resetSession())} disabled={locked}>
         <Icon name="refresh" size={15} />
         Reset form
       </button>
-      <button className="btn btn-primary" type="button" onClick={() => dispatch(saveComplaint())} disabled={busy}>
-        <Icon name="save" size={15} />
-        Save complaint
+      <button className="btn btn-primary" type="button" onClick={() => dispatch(saveComplaint())} disabled={locked}>
+        <Icon name="submit" size={15} />
+        Submit complaint
       </button>
     </div>
   )

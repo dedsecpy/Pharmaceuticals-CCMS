@@ -20,9 +20,11 @@ export const sendMessage = createAsyncThunk(
 
 export const uploadDocument = createAsyncThunk(
   'qms/uploadDocument',
-  async (file, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
     try {
-      return await upload(file)
+      const file = payload instanceof File ? payload : payload.file
+      const note = payload instanceof File ? '' : payload.note || ''
+      return await upload(file, note)
     } catch (err) {
       return rejectWithValue(err.message)
     }

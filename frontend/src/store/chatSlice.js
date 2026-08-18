@@ -39,16 +39,18 @@ const chatSlice = createSlice({
       state.busy = true
       state.error = null
       state.progress = 12
-      const text = action.meta.arg
-      if (typeof text === 'string' && text.trim()) {
-        state.messages.push({ id: crypto.randomUUID(), role: 'user', content: text })
+      const arg = action.meta.arg
+      if (typeof arg === 'string' && arg.trim()) {
+        state.messages.push({ id: crypto.randomUUID(), role: 'user', content: arg })
         state.progressLabel = 'Bunny is thinking…'
       } else {
-        const name = action.meta.arg?.name || 'document'
+        const file = arg instanceof File ? arg : arg?.file
+        const name = file?.name || arg?.name || 'document'
+        const note = typeof arg === 'object' && arg && !(arg instanceof File) ? arg.note : ''
         state.messages.push({
           id: crypto.randomUUID(),
           role: 'user',
-          content: `Uploaded ${name}`,
+          content: note?.trim() ? `Uploaded ${name}\n${note.trim()}` : `Uploaded ${name}`,
         })
         state.progressLabel = 'Analyzing document content and extracting key details…'
       }
@@ -84,7 +86,7 @@ const chatSlice = createSlice({
       .addCase(uploadDocument.fulfilled, fulfilled)
       .addCase(uploadDocument.rejected, rejected)
       .addCase(saveComplaint.fulfilled, (state, action) => {
-        state.toast = `Saved ${action.payload.complaint_number}`
+        state.toast = `Submitted ${action.payload.complaint_number}`
         state.messages.push({
           id: crypto.randomUUID(),
           role: 'assistant',

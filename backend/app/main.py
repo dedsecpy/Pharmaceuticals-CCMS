@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -137,6 +137,7 @@ def chat(body: ChatRequest, db: Session = Depends(get_db)):
 @app.post("/api/upload")
 async def upload(
     file: UploadFile = File(...),
+    note: str = Form(""),
     db: Session = Depends(get_db),
 ):
     if not file.filename:
@@ -151,8 +152,18 @@ async def upload(
     if not text.strip():
         raise HTTPException(status_code=400, detail="The document contained no readable text.")
 
+    extra = note.strip()
+    if extra:
+        text = f"{text}\n\nAdditional context from the user:\n{extra}"
+        user_text = (
+            f"Extract the customer complaint from uploaded file {file.filename}. "
+            f"The user also said: {extra}"
+        )
+    else:
+        user_text = f"Extract the customer complaint from uploaded file {file.filename}."
+
     return _run_graph(
-        user_text=f"Extract the customer complaint from uploaded file {file.filename}.",
+        user_text=user_text,
         complaint=empty_complaint(),
         risk=empty_risk(),
         insights=empty_insights(),

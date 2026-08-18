@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 
 function Cell({ label, value, wide }) {
@@ -23,11 +24,34 @@ export default function RiskAssessment() {
       insights.capa_recommendation ||
       duplicates.length,
   )
+  const cardRef = useRef(null)
+  const seen = useRef(false)
+
+  useEffect(() => {
+    if (!ready) {
+      seen.current = false
+      return
+    }
+    if (seen.current || !cardRef.current) return
+    seen.current = true
+    const card = cardRef.current
+    const id = window.setTimeout(() => {
+      const pane = card.closest('.record-scroll')
+      if (!pane) return
+      const paneBox = pane.getBoundingClientRect()
+      const cardBox = card.getBoundingClientRect()
+      pane.scrollTo({
+        top: pane.scrollTop + (cardBox.top - paneBox.top) - 12,
+        behavior: 'smooth',
+      })
+    }, 60)
+    return () => window.clearTimeout(id)
+  }, [ready])
 
   if (!ready) return null
 
   return (
-    <div className="risk-card">
+    <div className="risk-card" ref={cardRef}>
       <header>
         <h3>AI copilot risk assessment</h3>
         <span className={`severity ${severity || 'empty'}`}>{risk.severity || 'Unclassified'}</span>

@@ -21,9 +21,10 @@ export function chat(body) {
   }).then(handle)
 }
 
-export function upload(file) {
+export function upload(file, note = '') {
   const form = new FormData()
   form.append('file', file)
+  if (note) form.append('note', note)
   return fetch('/api/upload', { method: 'POST', body: form }).then(handle)
 }
 
