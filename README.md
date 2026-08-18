@@ -1,8 +1,8 @@
-# AIVOA QMS — Pharmaceutical Customer Complaint Copilot
+# AIVOA Pharma QMS — Customer Complaint Copilot
 
 AI-powered **Customer Complaint** module for API and FDF manufacturing QA. Built for the [AIVOA](https://github.com/dedsecpy/Pharmaceuticals-CCMS) Round 1 AI Product Engineer assignment.
 
-The left pane is the official QMS record. The right pane is **Bunny**, an intake assistant that logs, edits, and extracts complaints from prompts or documents, then drafts a GMP-aware risk assessment. QA can also type the form by hand. Save remains a human decision — this is a copilot, not a validated eQMS.
+The left pane is the official QMS record. The right pane is **Bunny**, an intake assistant that logs, edits, and extracts complaints from prompts or documents, then drafts a GMP-aware risk assessment. QA can also type the form by hand. **Submit** is a human action — this is a copilot, not a validated eQMS.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -47,11 +47,12 @@ Intake tools (`log_complaint`, `edit_complaint`, `extract_document`) return comp
 | --- | --- |
 | **Log complaint** | Extracts source, customer, product, batch, dates, quantity, type, and description from free text. |
 | **Edit complaint** | Patches only the fields mentioned (“batch is BMX24602”) and preserves the rest. |
-| **Extract document** | Parses PDF, DOCX, TXT, or EML (10 MB) and fills the same schema. |
-| **Risk assessment** | Severity (Critical / Major / Minor), next action, patient-safety impact, regulatory flag, batch disposition, CAPA, root-cause hypothesis. |
+| **Extract document** | Parses PDF, DOCX, TXT, or EML (10 MB). Attach first, add an optional note, then press Enter. |
+| **Risk assessment** | Severity (Critical / Major / Minor), next action, patient-safety impact, regulatory flag, batch disposition, CAPA, root-cause hypothesis. Shown after Bunny fills, not on an empty form. |
 | **Completeness** | Score plus missing intake fields. |
 | **Duplicate scan** | Matches saved records on product and batch/lot. |
 | **Human edit** | Form fields are editable in Redux; Bunny is not the only writer. |
+| **Human submit** | Empty submit shakes the button and shows a hint. Successful save plays a confirmation overlay. |
 | **Audit trail** | Each graph run is stored in `audit_events`. |
 
 ---
@@ -59,9 +60,10 @@ Intake tools (`log_complaint`, `edit_complaint`, `extract_document`) return comp
 ## Architecture
 
 ```
-frontend/          Vite + React 19 + Redux Toolkit + Google Inter
-  CopilotPanel  →  POST /api/chat | /api/upload
-  ComplaintForm →  PATCH local fields, POST /api/complaints
+frontend/          Vite + React 19 + Redux Toolkit + Tailwind + Motion
+  BootSplash    →  AIVOA mark + shining “Taking you to the complaint portal…”
+  CopilotPanel  →  POST /api/chat | /api/upload (optional note)
+  ComplaintForm →  local fields, live-fill, POST /api/complaints
 backend/
   FastAPI       →  LangGraph StateGraph (graph.py)
   tools.py      →  log / edit / extract / chat
@@ -79,7 +81,7 @@ Named LangGraph nodes (point at these in a code walkthrough):
 
 ### Models
 
-The assignment listed Groq `gemma2-9b-it` and `llama-3.3-70b-versatile`. Both are retired (`gemma2-9b-it` on 8 Oct 2025, `llama-3.3-70b-versatile` on 16 Aug 2026). The live default is **`openai/gpt-oss-20b`**. `config.py` still remaps the old IDs if they appear in `.env`.
+The assignment listed Groq `gemma2-9b-it` and `llama-3.3-70b-versatile`. Both are retired. The live path is **`openai/gpt-oss-20b`** for JSON intake and prose (`llm.py`). `config.py` remaps the old IDs if they appear in `.env`.
 
 Optional Llama API (`https://api.llama-api.com`) is a short-timeout fallback. Groq is the path used in the demo.
 
@@ -89,7 +91,7 @@ Optional Llama API (`https://api.llama-api.com`) is a short-timeout fallback. Gr
 
 | Layer | Choice |
 | --- | --- |
-| UI | React 19, Redux Toolkit, Vite 8, Google Inter |
+| UI | React 19, Redux Toolkit, Vite 8, Tailwind CSS 4, Motion, Google Inter |
 | API | FastAPI, Pydantic v2, Uvicorn |
 | Agent | LangGraph `StateGraph`, LangChain tools |
 | LLM | Groq `openai/gpt-oss-20b` (JSON intake + prose) |
@@ -131,7 +133,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173). Vite proxies `/api` to port 8000.
+Open [http://localhost:5173](http://localhost:5173). Vite proxies `/api` to port 8000. The first ~2.5s is a loading splash, then the two-pane workspace.
 
 macOS / Linux: `source .venv/bin/activate` and `cp .env.example .env`.
 
@@ -153,7 +155,7 @@ DATABASE_URL=postgresql+psycopg2://qms:qms@localhost:5432/qms
 
 ## Demo script
 
-Sample files live in [`samples/`](samples/). Paste the prompts into Bunny.
+Sample files live in [`samples/`](samples/). Paste the prompts into Bunny. Generate the PDFs first if they are missing (`python ..\samples\generate_samples.py` from `backend` with the venv active).
 
 ### 1. Log complaint
 
@@ -161,7 +163,7 @@ Sample files live in [`samples/`](samples/). Paste the prompts into Bunny.
 
 The left form fills. Risk typically classifies discoloration as **Major**, with a next action such as route to QA investigation.
 
-You can also upload [`samples/apollo_amoxicillin_complaint.pdf`](samples/apollo_amoxicillin_complaint.pdf).
+You can also generate and upload [`samples/apollo_amoxicillin_complaint.pdf`](samples/apollo_amoxicillin_complaint.pdf). Text and email copies are already in `samples/`; PDFs come from the generator below.
 
 ### 2. Edit complaint
 
@@ -197,7 +199,7 @@ python ..\samples\generate_samples.py
 | --- | --- | --- |
 | `GET` | `/api/health` | Provider, model IDs, whether keys are present |
 | `POST` | `/api/chat` | Prompt + current complaint → graph |
-| `POST` | `/api/upload` | PDF / DOCX / TXT / EML → `extract_document` |
+| `POST` | `/api/upload` | PDF / DOCX / TXT / EML, optional `note` field → `extract_document` |
 | `GET` | `/api/complaints` | Saved records (duplicate scan + recents) |
 | `POST` | `/api/complaints` | Human save of the draft |
 | `POST` | `/api/complaints/reset` | Empty draft |
@@ -215,9 +217,11 @@ backend/app/agent/tools.py          log / edit / extract / chat
 backend/app/agent/schemas.py        Complaint, risk, insights contracts
 backend/app/agent/llm.py            Groq + optional Llama clients
 backend/app/models.py               SQLAlchemy complaint + audit_events
-frontend/src/components/             Form, Bunny, risk card
+frontend/src/components/             Form, Bunny rail, risk card, boot splash
+frontend/src/components/ui/          ShiningText (Motion)
+frontend/src/hooks/useLiveFill.js    Types fields as Bunny extracts
 frontend/src/store/                  Redux slices and thunks
-samples/                             Demo PDF, email, and text
+samples/                             Demo PDF generator, email, and text
 docker-compose.yml                   PostgreSQL 16
 ```
 
