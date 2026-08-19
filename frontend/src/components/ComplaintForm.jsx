@@ -149,6 +149,7 @@ function Control({ spec, value, unit, disabled, onChange }) {
           value={value || ''}
           placeholder={spec.placeholder}
           maxLength={5000}
+          rows={6}
           disabled={disabled}
           onChange={(e) => set(spec.key, e.target.value)}
         />

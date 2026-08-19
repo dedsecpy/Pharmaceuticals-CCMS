@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { pushNotice, setProgress } from '../store/chatSlice'
+import { pushNotice } from '../store/chatSlice'
 import { sendMessage, uploadDocument } from '../store/thunks'
 import bunnybot from '../assets/bunnybot.png'
 import { Icon } from './Icon'
@@ -28,7 +28,7 @@ const STEPS = [
 
 export default function CopilotPanel({ className = '' }) {
   const dispatch = useDispatch()
-  const { messages, busy, progress, progressLabel, error } = useSelector((s) => s.chat)
+  const { messages, busy, progressLabel, error } = useSelector((s) => s.chat)
   const [draft, setDraft] = useState('')
   const [attachment, setAttachment] = useState(null)
   const fileRef = useRef(null)
@@ -40,18 +40,6 @@ export default function CopilotPanel({ className = '' }) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, busy])
-
-  useEffect(() => {
-    if (!busy) return undefined
-    const id = setInterval(() => {
-      dispatch(
-        setProgress({
-          progress: Math.min(92, (progress || 10) + Math.random() * 14),
-        }),
-      )
-    }, 450)
-    return () => clearInterval(id)
-  }, [busy, dispatch, progress])
 
 
   function submit() {
@@ -120,13 +108,9 @@ export default function CopilotPanel({ className = '' }) {
       ) : (
         <div className="chat">
           {busy ? (
-            <div className="progress-wrap on">
-              <div className="bar">
-                <span style={{ width: `${progress}%` }} />
-              </div>
-              <p>
-                {progressLabel} {Math.round(progress)}%
-              </p>
+            <div className="progress-wrap on" role="status" aria-live="polite">
+              <div className="bar indeterminate" aria-hidden="true" />
+              <p>{progressLabel || 'Bunny is thinking…'}</p>
             </div>
           ) : null}
           {thread.map((msg) => (

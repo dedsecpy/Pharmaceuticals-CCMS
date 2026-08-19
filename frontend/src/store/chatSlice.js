@@ -13,16 +13,11 @@ const chatSlice = createSlice({
   initialState: {
     messages: [welcome],
     busy: false,
-    progress: 0,
     progressLabel: '',
     error: null,
     toast: null,
   },
   reducers: {
-    setProgress(state, action) {
-      state.progress = action.payload.progress
-      state.progressLabel = action.payload.label || state.progressLabel
-    },
     clearToast(state) {
       state.toast = null
     },
@@ -38,7 +33,6 @@ const chatSlice = createSlice({
     const pending = (state, action) => {
       state.busy = true
       state.error = null
-      state.progress = 12
       const arg = action.meta.arg
       if (typeof arg === 'string' && arg.trim()) {
         state.messages.push({ id: crypto.randomUUID(), role: 'user', content: arg })
@@ -57,7 +51,6 @@ const chatSlice = createSlice({
     }
     const fulfilled = (state, action) => {
       state.busy = false
-      state.progress = 100
       state.progressLabel = ''
       state.messages.push({
         id: crypto.randomUUID(),
@@ -69,7 +62,6 @@ const chatSlice = createSlice({
     }
     const rejected = (state, action) => {
       state.busy = false
-      state.progress = 0
       state.error = action.payload || action.error.message
       state.messages.push({
         id: crypto.randomUUID(),
@@ -101,12 +93,11 @@ const chatSlice = createSlice({
       .addCase(resetSession.fulfilled, (state) => {
         state.messages = [welcome]
         state.busy = false
-        state.progress = 0
         state.progressLabel = ''
         state.error = null
       })
   },
 })
 
-export const { setProgress, clearToast, pushNotice } = chatSlice.actions
+export const { clearToast, pushNotice } = chatSlice.actions
 export default chatSlice.reducer

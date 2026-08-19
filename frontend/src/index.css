@@ -476,9 +476,12 @@ select {
 }
 
 .field textarea {
-  height: clamp(48px, 8vh, 88px);
-  min-height: 48px;
+  field-sizing: fixed;
+  height: 128px;
+  min-height: 128px;
+  max-height: 128px;
   resize: none;
+  overflow-y: auto;
   line-height: 1.45;
   padding-bottom: 22px;
 }
@@ -1191,26 +1194,63 @@ html[data-theme="dark"] .attach {
 }
 
 .progress-wrap {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .bar {
-  height: 5px;
-  background: rgba(255, 255, 255, 0.7);
+  height: 3px;
+  background: color-mix(in srgb, var(--blue) 18%, transparent);
   border-radius: 99px;
   overflow: hidden;
+  position: relative;
 }
 
-.bar span {
-  display: block;
-  height: 100%;
+.bar.indeterminate::before,
+.bar.indeterminate::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: inherit;
   background: var(--blue);
 }
 
+.bar.indeterminate::before {
+  width: 42%;
+  animation: gpt-glide 1.45s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.bar.indeterminate::after {
+  width: 24%;
+  opacity: 0.4;
+  animation: gpt-glide 1.45s cubic-bezier(0.4, 0, 0.2, 1) 0.52s infinite;
+}
+
 .progress-wrap p {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   font-size: 12px;
+  font-weight: 500;
   color: var(--navy);
+}
+
+@keyframes gpt-glide {
+  0% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(360%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar.indeterminate::before,
+  .bar.indeterminate::after {
+    animation: none;
+    width: 38%;
+    transform: none;
+    opacity: 1;
+  }
 }
 
 .composer {
@@ -1448,47 +1488,6 @@ html[data-theme="dark"] .attach {
     top: 105vh;
     transform: scale(var(--s)) rotate(calc(var(--r) + 540deg));
   }
-}
-
-.modal-back {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.36);
-  display: grid;
-  place-items: center;
-  z-index: 40;
-}
-
-.modal {
-  width: min(520px, calc(100vw - 32px));
-  background: var(--shell);
-  border-radius: 16px;
-  padding: 20px;
-}
-
-.modal h3 {
-  margin: 0 0 6px;
-}
-
-.modal-copy {
-  margin: 0 0 12px;
-  color: var(--ink-2);
-  font-size: 13px;
-}
-
-.modal textarea {
-  width: 100%;
-  min-height: 170px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  padding: 12px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
 }
 
 @media (max-width: 900px) {
